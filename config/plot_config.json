@@ -1,0 +1,10 @@
+{
+    "vv_vmin": -30,
+    "vv_vmax": -5,
+    "vh_vmin": -35,
+    "vh_vmax": -10,
+    "hv_vmin": -35,
+    "hv_vmax": -10,
+    "hh_vmin": -30,
+    "hh_vmax": -5
+}
