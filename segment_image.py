@@ -5,7 +5,7 @@ import numpy as np
 from osgeo import gdal
 import matplotlib.pyplot as plt
 
-
+from sklearn.cluster import KMeans
 
 # ------------------------------------------------------------------------ #
 # ------------------------------------------------------------------------ #
@@ -85,23 +85,44 @@ L_gamma_HH = data_L[13,:,:]
 # ------------------------------------------------------------------------ #
 # ------------------------------------------------------------------------ #
 
+img_shape = L_sigma_HH.shape
+
 # stack intensities to data cubes per wavelength
-X_sigma = np.stack((X_sigma_VV, X_sigma_HV, X_sigma_HH),2)
-C_sigma = np.stack((C_sigma_VV, C_sigma_HV, C_sigma_HH),2)
-L_sigma = np.stack((L_sigma_VV, L_sigma_HV, L_sigma_HH),2)
-X_gamma = np.stack((X_gamma_VV, X_gamma_HV, X_gamma_HH),2)
-C_gamma = np.stack((C_gamma_VV, C_gamma_HV, C_gamma_HH),2)
-L_gamma = np.stack((L_gamma_VV, L_gamma_HV, L_gamma_HH),2)
+X_sigma = np.stack((X_sigma_VV.flatten(), X_sigma_HV.flatten(), X_sigma_HH.flatten()),1)
+C_sigma = np.stack((C_sigma_VV.flatten(), C_sigma_HV.flatten(), C_sigma_HH.flatten()),1)
+L_sigma = np.stack((L_sigma_VV.flatten(), L_sigma_HV.flatten(), L_sigma_HH.flatten()),1)
+X_gamma = np.stack((X_gamma_VV.flatten(), X_gamma_HV.flatten(), X_gamma_HH.flatten()),1)
+C_gamma = np.stack((C_gamma_VV.flatten(), C_gamma_HV.flatten(), C_gamma_HH.flatten()),1)
+L_gamma = np.stack((L_gamma_VV.flatten(), L_gamma_HV.flatten(), L_gamma_HH.flatten()),1)
 
 # train kmeans segmentation models
 
+n_clusters = 3
 
+kmeans_C_sigma = KMeans(n_clusters=n_clusters, random_state=0, n_init='auto').fit(C_sigma)
+kmeans_C_gamma = KMeans(n_clusters=n_clusters, random_state=0, n_init='auto').fit(C_gamma)
+kmeans_L_sigma = KMeans(n_clusters=n_clusters, random_state=0, n_init='auto').fit(L_sigma)
+kmeans_L_gamma = KMeans(n_clusters=n_clusters, random_state=0, n_init='auto').fit(L_gamma)
 
+# reshape labels to img
+C_sigma_labels = kmeans_C_sigma.labels_.reshape(img_shape)
+C_gamma_labels = kmeans_C_gamma.labels_.reshape(img_shape)
+L_sigma_labels = kmeans_L_sigma.labels_.reshape(img_shape)
+L_gamma_labels = kmeans_L_gamma.labels_.reshape(img_shape)
 
+# ------------------------------------------------------------------------ #
+# ------------------------------------------------------------------------ #
 
+fig, axes = plt.subplots(3,2,sharex=True, sharey=True, figsize=((10,8)))
+axes = axes.ravel()
 
+axes[0].imshow(L_sigma_VV, vmin=vv_vmin, vmax=vv_vmax, cmap='gray')
+axes[2].imshow(L_sigma_labels, interpolation='nearest')
+axes[4].imshow(L_gamma_labels, interpolation='nearest')
 
-
+axes[1].imshow(C_sigma_VV, vmin=vv_vmin, vmax=vv_vmax, cmap='gray')
+axes[3].imshow(C_sigma_labels, interpolation='nearest')
+axes[5].imshow(C_gamma_labels, interpolation='nearest')
 
 # ------------------------------------------------------------------------ #
 # ------------------------------------------------------------------------ #
